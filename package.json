@@ -1,0 +1,22 @@
+{
+  "name": "youtube-music-backend",
+  "version": "1.0.0",
+  "description": "REST API backend for YouTube Music using InnerTube API",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": ["youtube-music", "innertube", "api", "streaming"],
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
