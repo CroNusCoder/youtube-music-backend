@@ -24,30 +24,49 @@ function getAgent() {
   if (ytdlAgent) return ytdlAgent;
 
   // 1. Try reading cookies.json from project root
+  let cookies = null;
   try {
     const cookiesPath = path.join(__dirname, '../../cookies.json');
     if (fs.existsSync(cookiesPath)) {
       const fileContent = fs.readFileSync(cookiesPath, 'utf8');
-      const cookies = JSON.parse(fileContent);
-      ytdlAgent = ytdl.createAgent(cookies);
-      console.log('[stream] Loaded ytdl agent with', cookies.length, 'cookies from cookies.json');
-      return ytdlAgent;
+      cookies = JSON.parse(fileContent);
+      console.log('[stream] Loaded cookies from cookies.json');
     }
   } catch (e) {
     console.warn('[stream] Failed to load cookies.json:', e.message);
   }
   
   // 2. Fallback to YT_COOKIES env var
-  const cookiesEnv = process.env.YT_COOKIES;
-  if (cookiesEnv) {
-    try {
-      const cookies = JSON.parse(cookiesEnv);
-      ytdlAgent = ytdl.createAgent(cookies);
-      console.log('[stream] Created ytdl agent with', cookies.length, 'cookies from YT_COOKIES env var');
-    } catch (e) {
-      console.warn('[stream] Failed to parse YT_COOKIES:', e.message);
+  if (!cookies) {
+    const cookiesEnv = process.env.YT_COOKIES;
+    if (cookiesEnv) {
+      try {
+        cookies = JSON.parse(cookiesEnv);
+        console.log('[stream] Loaded cookies from YT_COOKIES env var');
+      } catch (e) {
+        console.warn('[stream] Failed to parse YT_COOKIES:', e.message);
+      }
     }
   }
+
+  // 3. Create the agent (with proxy if YT_PROXY is defined)
+  const proxyUri = process.env.YT_PROXY;
+  if (proxyUri) {
+    try {
+      ytdlAgent = ytdl.createProxyAgent({ uri: proxyUri }, cookies || undefined);
+      console.log('[stream] Created ytdl proxy agent with proxy:', proxyUri, 'and', cookies ? cookies.length : 0, 'cookies');
+    } catch (e) {
+      console.error('[stream] Failed to create ytdl proxy agent:', e.message);
+    }
+  } else if (cookies) {
+    try {
+      ytdlAgent = ytdl.createAgent(cookies);
+      console.log('[stream] Created ytdl agent with', cookies.length, 'cookies');
+    } catch (e) {
+      console.error('[stream] Failed to create ytdl agent:', e.message);
+    }
+  }
+
   return ytdlAgent;
 }
 
